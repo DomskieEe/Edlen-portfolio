@@ -15,7 +15,7 @@ const ContactModal = ({ isOpen, onClose }) => {
     setStatus('sending');
 
     try {
-      const response = await fetch('https://formspree.io/f/mnnennlz', {
+      const response = await fetch('https://formspree.io/f/mdagwdwg', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
