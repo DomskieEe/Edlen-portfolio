@@ -91,7 +91,7 @@ const Hero = () => {
           background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
           background-size: 40px 40px;
           mask-image: radial-gradient(ellipse at center, black, transparent 80%);
-          opacity: 0.2;
+          opacity: 0.1;
         }
 
         .blob {
@@ -101,7 +101,7 @@ const Hero = () => {
           background: var(--accent-glow);
           filter: blur(100px);
           border-radius: 50%;
-          opacity: 0.3;
+          opacity: 0.1;
           animation: float 20s infinite alternate;
         }
 
@@ -203,7 +203,7 @@ const Hero = () => {
           inset: -20px;
           background: var(--accent-primary);
           filter: blur(60px);
-          opacity: 0.15;
+          opacity: 0.08;
           border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
           animation: morph 10s linear infinite;
         }

@@ -1,84 +1,138 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Github, Mail, Linkedin, Download } from 'lucide-react';
+import { Menu, X, Github, Linkedin, Download } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const Navbar = ({ onContactClick }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [activeSection, setActiveSection] = useState('home');
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
-
-      // Section Tracking Logic
-      const sections = ['home', 'about', 'experience', 'projects', 'skills'];
-      const scrollPosition = window.scrollY + 100;
-
-      for (const section of sections) {
-        const element = document.getElementById(section);
-        if (element) {
-          const offsetTop = element.offsetTop;
-          const height = element.offsetHeight;
-
-          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + height) {
-            setActiveSection(section);
-            break;
-          }
-        }
-      }
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Handle hash scrolling on Home page
+  useEffect(() => {
+    if (location.pathname === '/' && location.hash) {
+      const element = document.getElementById(location.hash.substring(1));
+      if (element) {
+        setTimeout(() => {
+          const offset = 80;
+          const bodyRect = document.body.getBoundingClientRect().top;
+          const elementRect = element.getBoundingClientRect().top;
+          const elementPosition = elementRect - bodyRect;
+          const offsetPosition = elementPosition - offset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }, 100);
+      }
+    } else if (!location.hash) {
+      window.scrollTo(0, 0);
+    }
+  }, [location]);
+
   const navLinks = [
-    { name: 'Home', href: '#home', id: 'home' },
-    { name: 'About', href: '#about', id: 'about' },
-    { name: 'Experience', href: '#experience', id: 'experience' },
-    { name: 'Projects', href: '#projects', id: 'projects' },
-    { name: 'Skills', href: '#skills', id: 'skills' },
-    { name: 'Contact', id: 'contact', action: true },
+    { name: 'Home', path: '/', hash: '#home' },
+    { name: 'About', path: '/', hash: '#about' },
+    { name: 'Experience', path: '/experience' },
+    { name: 'Projects', path: '/projects' },
+    { name: 'Skills', path: '/', hash: '#skills' },
+    { name: 'Contact', action: true },
   ];
+
+  const handleNavClick = (link) => {
+    setIsOpen(false);
+    if (link.action) {
+      onContactClick();
+      return;
+    }
+
+    if (link.path === '/') {
+      if (location.pathname !== '/') {
+        navigate(link.path + (link.hash || ''));
+      } else if (link.hash) {
+        const element = document.getElementById(link.hash.substring(1));
+        if (element) {
+          const offset = 80;
+          const bodyRect = document.body.getBoundingClientRect().top;
+          const elementRect = element.getBoundingClientRect().top;
+          const elementPosition = elementRect - bodyRect;
+          const offsetPosition = elementPosition - offset;
+
+          window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+        }
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  };
+
+  const isActive = (link) => {
+    if (link.path === '/' && link.hash) return false; // Don't highlight hash links on home as active pages
+    if (link.path === '/' && location.pathname === '/') return location.hash === '' || location.hash === '#home';
+    return location.pathname === link.path;
+  };
 
   return (
     <nav className={`navbar ${scrolled ? 'scrolled glass' : ''}`}>
       <div className="container nav-content">
-        <motion.a
-          href="#home"
+        <Link
+          to="/"
           className="logo gradient-text"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          onClick={() => window.scrollTo(0, 0)}
         >
-          Edlen Dev
-        </motion.a>
+          {/* Using text directly as motion component wrapper might cause issues with Link */}
+          <motion.span whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            Edlen Dev
+          </motion.span>
+        </Link>
 
         <ul className="nav-links desktop-only">
           {navLinks.map((link) => (
             <li key={link.name}>
-              <motion.a
-                href={link.action ? undefined : link.href}
-                className={activeSection === link.id ? 'active' : ''}
-                whileHover={{ y: -2 }}
-                whileTap={{ y: 0 }}
-                onClick={(e) => {
-                  if (link.action) {
-                    e.preventDefault();
-                    onContactClick();
-                  }
-                }}
-                style={link.action ? { cursor: 'pointer' } : {}}
-              >
-                {link.name}
-                {activeSection === link.id && (
-                  <motion.div
-                    layoutId="activeNav"
-                    className="active-indicator"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                )}
-              </motion.a>
+              {link.action ? (
+                <motion.button
+                  className="nav-btn-link"
+                  onClick={() => handleNavClick(link)}
+                  whileHover={{ y: -2 }}
+                  whileTap={{ y: 0 }}
+                >
+                  {link.name}
+                </motion.button>
+              ) : (
+                <Link
+                  to={link.path + (link.hash || '')}
+                  className={isActive(link) ? 'active' : ''}
+                  onClick={(e) => {
+                    // For same-page hash links, prevent default router behavior to handle smooth scroll manually
+                    if (link.path === '/' && location.pathname === '/' && link.hash) {
+                      e.preventDefault();
+                      handleNavClick(link);
+                    }
+                  }}
+                >
+                  <motion.span whileHover={{ y: -2 }} whileTap={{ y: 0 }} style={{ display: 'inline-block' }}>
+                    {link.name}
+                  </motion.span>
+                  {isActive(link) && (
+                    <motion.div
+                      layoutId="activeNav"
+                      className="active-indicator"
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                </Link>
+              )}
             </li>
           ))}
         </ul>
@@ -115,20 +169,19 @@ const Navbar = ({ onContactClick }) => {
             <ul className="mobile-nav-links">
               {navLinks.map((link) => (
                 <li key={link.name}>
-                  <a
-                    href={link.action ? undefined : link.href}
-                    className={activeSection === link.id ? 'active' : ''}
-                    onClick={(e) => {
-                      if (link.action) {
-                        e.preventDefault();
-                        onContactClick();
-                      }
-                      setIsOpen(false);
-                    }}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    {link.name}
-                  </a>
+                  {link.action ? (
+                    <button onClick={() => handleNavClick(link)} className="mobile-link-btn">
+                      {link.name}
+                    </button>
+                  ) : (
+                    <Link
+                      to={link.path + (link.hash || '')}
+                      className={isActive(link) ? 'active' : ''}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {link.name}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
@@ -164,6 +217,7 @@ const Navbar = ({ onContactClick }) => {
         .logo {
           font-size: 1.8rem;
           font-weight: 800;
+          display: inline-block;
         }
 
         .nav-links {
@@ -176,7 +230,7 @@ const Navbar = ({ onContactClick }) => {
           backdrop-filter: blur(10px);
         }
 
-        .nav-links a {
+        .nav-links a, .nav-btn-link {
           font-weight: 500;
           color: var(--text-secondary);
           position: relative;
@@ -184,6 +238,10 @@ const Navbar = ({ onContactClick }) => {
           flex-direction: column;
           align-items: center;
           padding: 0.2rem 0;
+          background: none;
+          border: none;
+          font-size: 1rem;
+          cursor: pointer;
         }
 
         .nav-links a.active {
@@ -269,10 +327,13 @@ const Navbar = ({ onContactClick }) => {
           align-items: center;
         }
 
-        .mobile-nav-links a {
+        .mobile-nav-links a, .mobile-link-btn {
           font-size: 1.2rem;
           font-weight: 600;
           color: var(--text-secondary);
+          background: none;
+          border: none;
+          cursor: pointer;
         }
 
         .mobile-nav-links a.active {
