@@ -9,7 +9,7 @@ const ExperiencePage = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.5 }}
-            style={{ paddingTop: '80px' }}
+            style={{ paddingTop: '120px' }}
         >
             <Experience />
         </motion.div>
