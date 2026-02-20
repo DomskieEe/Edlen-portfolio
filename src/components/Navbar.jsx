@@ -85,7 +85,7 @@ const Navbar = ({ onContactClick }) => {
 
         <div className="nav-actions">
           <a
-            href="/src/assets/RESUME.pdf"
+            href="/RESUME.pdf"
             download
             className="btn-cv desktop-only"
           >
